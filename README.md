@@ -11,7 +11,6 @@ Copy dlScan to /usr/local/bin/
 
     $ sudo cp dlScan /usr/local/bin/
 
-----
 ## Usage
 
     $ dlScan
