@@ -1,5 +1,7 @@
 # dlScan
 
+Quickly-made Shell tool for downloading manga chapters.
+
 ## Installation
 Clone repository
 
