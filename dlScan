@@ -128,7 +128,7 @@ while [[ $exists -eq 1 ]]; do
 	if [[ $double -eq 1 ]]; then
 		n="${n}"-$(printf "%02d" $(( $i + 1)))
 	fi
-	curl -s "$(eval echo "${urls[$n_url]}")" > "${name}/${chapter}/${n}.${ext[$ex]}"
+	curl -s "$(eval echo "${urls[$n_url]}" | sed "s/ /%20/g")" > "${name}/${chapter}/${n}.${ext[$ex]}"
 	test=$(echo $(wc -c "${name}/${chapter}/${n}.${ext[$ex]}") | cut -d\  -f 1)
 	if [[ $test -lt 1000 ]]; then
 		rm -f "${name}/${chapter}/${n}.${ext[$ex]}"
