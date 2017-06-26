@@ -14,12 +14,12 @@ Copy dlScan to /usr/local/bin/
 ## Usage
 
     $ dlScan
-    usage: dlScan manga_name scan_number
+    usage: dlScan manga_name [scan_number=latest]
 
 ### Arguments :
 
-* manga_name: name of the manga (can be an abbreviation)
-* scan_number: number of the chapter
+* manga_name : name of the manga (can be abbreviation)
+* scan_number : number of the chapter (default : latest)
 
 ### Example :
 
@@ -37,7 +37,8 @@ Copy dlScan to /usr/local/bin/
     Download http://cdn.japscan.com/lel/One Piece/868/14.png
     Download http://cdn.japscan.com/lel/One Piece/868/15.png
     Download http://cdn.japscan.com/lel/One Piece/868/16-17.png
-    Downloaded 13 images from One Piece n°868
+    Downloaded 13 images from One Piece n°868 to :
+    /Users/olivier/Documents/Perso/dlScan/One Piece/868/*
     $ tree
     .
     └── One\ Piece
