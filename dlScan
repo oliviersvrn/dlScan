@@ -78,7 +78,11 @@ skip=0
 ext=(png jpg jpeg gif)
 
 urls=("http://cdn.japscan.com/lel/\${name}/\${2}/\${n}.\${ext[\$ex]}"\
-      "http://cdn.japscan.com/lel/\${name}/\${2}/\${2} \(\${i}\).\${ext[\$ex]}")
+      "http://cdn.japscan.com/lel/\${name}/\${2}/\${2} \(\${i}\).\${ext[\$ex]}"\
+      "http://cdn.japscan.com/lel/\${name}/\${2}/\${2}-\${n}.\${ext[\$ex]}"\
+      "http://cdn.japscan.com/lel/\${name}/\${2}/\${n2}.\${ext[\$ex]}"\
+      "http://cdn.japscan.com/lel/\${name}/\${2}/vus_\${n2}.\${ext[\$ex]}"\
+      "http://cdn.japscan.com/lel/\${name}/\${2}/RAW-\${n2}.\${ext[\$ex]}")
 
 i=0
 ex=0
@@ -90,6 +94,7 @@ exists=1
 while [[ $exists -eq 1 ]]; do
 	mkdir -p "${name}/${2}"
 	n=$(printf "%02d" $i)
+	n2=$(printf "%03d" $i)
 	if [[ $double -eq 1 ]]; then
 		n="${n}"-$(printf "%02d" $(( $i + 1)))
 	fi
