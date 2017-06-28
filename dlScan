@@ -1,8 +1,10 @@
 #!/usr/local/bin/bash
 
+exe=$(echo $0 | sed "s/.*\\/\(.*\)/\\1/g")
+path=$(pwd)
+
 usage() {
-	name=$(echo $0 | sed "s/.*\\/\(.*\)/\\1/g")
-	echo "usage: ${name} manga_name [scan_number=latest]"
+	echo "usage: ${exe} manga_name [scan_number=latest] [path=.]" >&2
 }
 
 if [[ -z "${1}" ]]; then
@@ -10,37 +12,39 @@ if [[ -z "${1}" ]]; then
 	exit 1
 fi
 
+if [[ ! -z "${3}" ]]; then
+	if [[ -d "${3}" ]]; then
+		path="${3}"
+	else
+		echo "${exe}: ${3}: Not a directory" >&2
+		exit 1
+	fi
+fi
+
 declare -A aliases
-declare -A alternate
 
 aliases["op"]="One Piece"
 aliases["onepiece"]="One Piece"
-alternate["One Piece"]="one-piece"
 
 aliases["opm"]="One Punch Man"
 aliases["onepunchman"]="One Punch Man"
-alternate["One Punch Man"]="one-punch-man"
 
 aliases["nrt"]="Naruto"
 aliases["naruto"]="Naruto"
-alternate["Naruto"]="naruto"
 
 aliases["ft"]="Fairy Tail"
 aliases["fairytail"]="Fairy Tail"
-alternate["Fairy Tail"]="fairy-tail"
 
 aliases["hh"]="Hunter X Hunter"
 aliases["hxh"]="Hunter X Hunter"
 aliases["hunter"]="Hunter X Hunter"
 aliases["hunterhunter"]="Hunter X Hunter"
 aliases["hunterxhunter"]="Hunter X Hunter"
-alternate["Hunter X Hunter"]="hunter-x-hunter"
 
 aliases["nnt"]="Nanatsu No Taizai"
 aliases["nanatsu"]="Nanatsu No Taizai"
 aliases["taizai"]="Nanatsu No Taizai"
 aliases["nanatsunotaizai"]="Nanatsu No Taizai"
-alternate["Nanatsu No Taizai"]="nanatsu-no-taizai"
 
 aliases["aot"]="Shingeki No Kyojin"
 aliases["adt"]="Shingeki No Kyojin"
@@ -50,39 +54,31 @@ aliases["attackontitan"]="Shingeki No Kyojin"
 aliases["attaquedestitans"]="Shingeki No Kyojin"
 aliases["lattaquedestitans"]="Shingeki No Kyojin"
 aliases["shingekinokyojin"]="Shingeki No Kyojin"
-alternate["Shingeki No Kyojin"]="shingeki-no-kyojin"
 
 aliases["mha"]="My Hero Academia"
 aliases["bnha"]="My Hero Academia"
 aliases["heroacademia"]="My Hero Academia"
 aliases["myheroacademia"]="My Hero Academia"
 aliases["bokunoheroacademia"]="My Hero Academia"
-alternate["My Hero Academia"]="my-hero-academia"
 
 aliases["berserk"]="Berserk"
-alternate["Berserk"]="berserk"
 
 aliases["fw"]="Shokugeki No Soma"
 aliases["sns"]="Shokugeki No Soma"
 aliases["foodwars"]="Shokugeki No Soma"
 aliases["shokugekinosoma"]="Shokugeki No Soma"
 aliases["shokugekinosouma"]="Shokugeki No Soma"
-alternate["Shokugeki No Soma"]="shokugeki-no-soma"
 
 aliases["magi"]="Magi"
-alternate["Magi"]="magi"
 
 aliases["bc"]="Black Clover"
 aliases["blackclover"]="Black Clover"
-alternate["Black Clover"]="black-clover"
 
 aliases["bleach"]="Bleach"
-alternate["Bleach"]="bleach"
 
 aliases["tg"]="The Gamer"
 aliases["gamer"]="The Gamer"
 aliases["thegamer"]="The Gamer"
-alternate["The Gamer"]="the-gamer"
 
 name=$(echo "${1}" | sed "s/[ -_.'\"\(\)\{\}\[\]]//g" | tr '[:upper:]' '[:lower:]')
 name="${aliases[${name}]}"
@@ -104,14 +100,20 @@ urls=("http://cdn.japscan.com/lel/\${name}/\${chapter}/\${n}.\${ext[\$ex]}"\
       "http://cdn.japscan.com/lel/\${name}/\${chapter}/RAW-\${n2}.\${ext[\$ex]}")
 
 latest() {
-	last=$(curl -s "http://www.japscan.com/mangas/${1}/" 2>/dev/null | grep "//www.japscan.com/lecture-en-ligne/${1}/" | head -n 2 | tail -n 1 | sed "s/.*href=\"[^\"]*\/\([0-9]*\)\/\".*/\1/")
+	arg=$(echo "${1}" | tr '[:upper:]' '[:lower:]' | sed "s/ /-/g")
+	last=$(curl -s "http://www.japscan.com/mangas/${arg}/" 2>/dev/null | grep "//www.japscan.com/lecture-en-ligne/${arg}/" | head -n 2 | tail -n 1 | sed "s/.*href=\"[^\"]*\/\([0-9]*\)\/\".*/\1/")
 	echo $last
 }
 
 chapter="${2}"
 
 if [[ -z "${2}" ]] || ! [[ "${2}" =~ ^[0-9]*$ ]]; then
-	chapter=$(latest "${alternate[${name}]}")
+	chapter=$(latest "${name}")
+fi
+
+if [[ -d "${path}/${name}/${chapter}" ]]; then
+	echo "Chapter n°${chapter} of ${name} already downloaded."
+	exit 0
 fi
 
 i=0
@@ -122,16 +124,16 @@ dl=0
 
 exists=1
 while [[ $exists -eq 1 ]]; do
-	mkdir -p "${name}/${chapter}"
+	mkdir -p "${path}/${name}/${chapter}"
 	n=$(printf "%02d" $i)
 	n2=$(printf "%03d" $i)
 	if [[ $double -eq 1 ]]; then
 		n="${n}"-$(printf "%02d" $(( $i + 1)))
 	fi
-	curl -s "$(eval echo "${urls[$n_url]}" | sed "s/ /%20/g")" > "${name}/${chapter}/${n}.${ext[$ex]}"
-	test=$(echo $(wc -c "${name}/${chapter}/${n}.${ext[$ex]}") | cut -d\  -f 1)
+	curl -s "$(eval echo "${urls[$n_url]}" | sed "s/ /%20/g")" > "${path}/${name}/${chapter}/${n}.${ext[$ex]}"
+	test=$(echo $(wc -c "${path}/${name}/${chapter}/${n}.${ext[$ex]}") | cut -d\  -f 1)
 	if [[ $test -lt 1000 ]]; then
-		rm -f "${name}/${chapter}/${n}.${ext[$ex]}"
+		rm -f "${path}/${name}/${chapter}/${n}.${ext[$ex]}"
 		ex=$(( $ex + 1 ))
 		if [[ $ex -ge ${#ext[@]} ]]; then
 			double=$(( 1 - $double ))
@@ -160,15 +162,15 @@ while [[ $exists -eq 1 ]]; do
 	fi
 	if [[ $exists -eq 0 ]]; then
 		if [[ $dl -eq 0 ]]; then
-			rm -rf "${name}/${chapter}"
+			rm -rf "${path}/${name}/${chapter}"
 			echo "Scan ${name} n°${chapter} not found"
-			n=$(ls -1 "${name}" | wc -l)
+			n=$(ls -1 "${path}/${name}" | wc -l)
 			if [[ $n -eq 0 ]]; then
-				rm -rf "${name}"
+				rm -rf "${path}/${name}"
 			fi
 		else
 			echo "Downloaded $dl images from ${name} n°${chapter} to :"
-			echo "$(pwd)/${name}/${chapter}/*"
+			echo "${path}/${name}/${chapter}/*"
 		fi
 	fi
 	if [[ $test -gt 1000 ]]; then
