@@ -87,22 +87,24 @@ if [[ -z "${name}" ]]; then
 	name="${1}"
 fi
 
-skip_nbr=2
-skip=0
-
-ext=(png jpg jpeg gif)
-
-urls=("http://cdn.japscan.com/lel/\${name}/\${chapter}/\${n}.\${ext[\$ex]}"\
-      "http://cdn.japscan.com/lel/\${name}/\${chapter}/\${chapter} \(\${i}\).\${ext[\$ex]}"\
-      "http://cdn.japscan.com/lel/\${name}/\${chapter}/\${chapter}-\${n}.\${ext[\$ex]}"\
-      "http://cdn.japscan.com/lel/\${name}/\${chapter}/\${n2}.\${ext[\$ex]}"\
-      "http://cdn.japscan.com/lel/\${name}/\${chapter}/vus_\${n2}.\${ext[\$ex]}"\
-      "http://cdn.japscan.com/lel/\${name}/\${chapter}/RAW-\${n2}.\${ext[\$ex]}")
+base=("http://www.japscan.com")
+url=("http://www.japscan.com/lecture-en-ligne/\${name}/\${chapter}/\${n}.html")
 
 latest() {
 	arg=$(echo "${1}" | tr '[:upper:]' '[:lower:]' | sed "s/ /-/g")
 	last=$(curl -s "http://www.japscan.com/mangas/${arg}/" 2>/dev/null | grep "//www.japscan.com/lecture-en-ligne/${arg}/" | head -n 2 | tail -n 1 | sed "s/.*href=\"[^\"]*\/\([0-9]*\)\/\".*/\1/")
 	echo $last
+}
+
+getimgurl() {
+	name=$(echo "${1}" | tr '[:upper:]' '[:lower:]' | sed "s/ /-/g")
+	chapter="${2}"
+	n="${3}"
+	curl -s $(eval echo "${url}") | grep -A1 "id=\"img_link\"" | tail -n 1 | sed "s/.*src=\"\([^\"]*\)\".*/\\1/"
+
+	if [[ "${n}" -eq 1 ]]; then
+		warning=$(curl -s $(eval echo "${url}") | grep "id=\"note_chapitre\"" | sed "s/.*id=\"note_chapitre\">\([^<]*\).*/\\1/")
+	fi
 }
 
 chapter="${2}"
@@ -113,68 +115,23 @@ fi
 
 if [[ -d "${path}/${name}/${chapter}" ]]; then
 	echo "Chapter n°${chapter} of ${name} already downloaded."
-	exit 0
+	exit 1
 fi
 
-i=0
-ex=0
-double=0
-n_url=0
-dl=0
+page=0
+mkdir -p "${path}/${name}/${chapter}/"
 
-exists=1
-while [[ $exists -eq 1 ]]; do
-	mkdir -p "${path}/${name}/${chapter}"
-	n=$(printf "%02d" $i)
-	n2=$(printf "%03d" $i)
-	if [[ $double -eq 1 ]]; then
-		n="${n}"-$(printf "%02d" $(( $i + 1)))
-	fi
-	curl -s "$(eval echo "${urls[$n_url]}" | sed "s/ /%20/g")" > "${path}/${name}/${chapter}/${n}.${ext[$ex]}"
-	test=$(echo $(wc -c "${path}/${name}/${chapter}/${n}.${ext[$ex]}") | cut -d\  -f 1)
-	if [[ $test -lt 1000 ]]; then
-		rm -f "${path}/${name}/${chapter}/${n}.${ext[$ex]}"
-		ex=$(( $ex + 1 ))
-		if [[ $ex -ge ${#ext[@]} ]]; then
-			double=$(( 1 - $double ))
-			if [[ $double -eq 0 ]]; then
-				n_url=$(( $n_url + 1 ))
-				if [[ $n_url -ge ${#urls[@]} ]]; then
-					skip=$(( $skip + 1 ))
-					i=$(( i + 1 ))
-					n_url=0
-					if [[ $skip -gt $skip_nbr ]]; then
-						exists=0
-					fi
-				fi
-			fi
-			ex=0
-		fi
+while true; do
+	page=$(( page + 1 ))
+	imgurl=$(getimgurl "${name}" "${chapter}" "${page}")
+	if [[ -z "${imgurl}" ]]; then
+		exit;
 	else
-		echo "Download $(eval echo "${urls[$n_url]}")"
-		if [[ $double -eq 1 ]]; then
-			i=$(( $i + 1 ))
+		ext=$(echo "${imgurl}" | sed "s/.*\\.\([^\\.]*.*\)$/\\1/")
+		if [[ "${imgurl:0:1}" = "/" ]]; then
+			imgurl="${base}${imgurl}"
 		fi
-		ex=0
-		double=0
-		skip=0
-		dl=$(( $dl + 1 ))
-	fi
-	if [[ $exists -eq 0 ]]; then
-		if [[ $dl -eq 0 ]]; then
-			rm -rf "${path}/${name}/${chapter}"
-			echo "Scan ${name} n°${chapter} not found"
-			n=$(ls -1 "${path}/${name}" | wc -l)
-			if [[ $n -eq 0 ]]; then
-				rm -rf "${path}/${name}"
-			fi
-		else
-			echo "Downloaded $dl images from ${name} n°${chapter} to :"
-			echo "${path}/${name}/${chapter}/*"
-		fi
-	fi
-	if [[ $test -gt 1000 ]]; then
-		i=$(( $i + 1 ))
+		echo "Downloading ${name} chapter ${chapter} page ${page} to ${path}/${name}/${chapter}/${page}.${ext} ..."
+		curl -s "${imgurl}" > "${path}/${name}/${chapter}/${page}.${ext}"
 	fi
 done
-
