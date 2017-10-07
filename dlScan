@@ -100,10 +100,16 @@ getimgurl() {
 	name=$(echo "${1}" | tr '[:upper:]' '[:lower:]' | sed "s/ /-/g")
 	chapter="${2}"
 	n="${3}"
-	curl -s $(eval echo "${url}") | grep -A1 "id=\"img_link\"" | tail -n 1 | sed "s/.*src=\"\([^\"]*\)\".*/\\1/"
+	res=$(curl -s $(eval echo "${url}") | grep -A1 "id=\"img_link\"" | tail -n 1 | sed "s/.*src=\"\([^\"]*\)\".*/\\1/")
 
 	if [[ "${n}" -eq 1 ]]; then
 		warning=$(curl -s $(eval echo "${url}") | grep "id=\"note_chapitre\"" | sed "s/.*id=\"note_chapitre\">\([^<]*\).*/\\1/")
+	fi
+
+	if [[ "${4}" == "fr" ]] && [[ -z "${warning}" ]]; then
+		echo "${res}"
+	else
+		echo "${warning}" 1>&2
 	fi
 }
 
@@ -119,19 +125,23 @@ if [[ -d "${path}/${name}/${chapter}" ]]; then
 fi
 
 page=0
+ad=0
 mkdir -p "${path}/${name}/${chapter}/"
 
 while true; do
 	page=$(( page + 1 ))
-	imgurl=$(getimgurl "${name}" "${chapter}" "${page}")
+	imgurl=$(getimgurl "${name}" "${chapter}" "${page}" "fr")
 	if [[ -z "${imgurl}" ]]; then
 		exit;
+	elif [[ "${imgurl}" =~ japscan\.com/img ]]; then
+		ad=$(( ad + 1 ))
+		continue;
 	else
 		ext=$(echo "${imgurl}" | sed "s/.*\\.\([^\\.]*.*\)$/\\1/")
 		if [[ "${imgurl:0:1}" = "/" ]]; then
 			imgurl="${base}${imgurl}"
 		fi
-		echo "Downloading ${name} chapter ${chapter} page ${page} to ${path}/${name}/${chapter}/${page}.${ext} ..."
-		curl -s "${imgurl}" > "${path}/${name}/${chapter}/${page}.${ext}"
+		echo "Downloading ${name} chapter ${chapter} page $(( page - ad )) to ${path}/${name}/${chapter}/$(( page - ad )).${ext} ..."
+		curl -s "${imgurl}" > "${path}/${name}/${chapter}/$(( page - ad )).${ext}"
 	fi
 done
