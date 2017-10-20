@@ -119,7 +119,7 @@ if [[ -z "${2}" ]] || ! [[ "${2}" =~ ^[0-9]*$ ]]; then
 	chapter=$(latest "${name}")
 fi
 
-if [[ -d "${path}/${name}/${chapter}" ]]; then
+if [[ -d "${path}/${name}/${chapter}" ]] && [[ "$(ls -1 "${path}/${name}/${chapter}" | wc -l)" -gt 0 ]]; then
 	echo "Chapter n°${chapter} of ${name} already downloaded."
 	exit 1
 fi
