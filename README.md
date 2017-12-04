@@ -1,60 +1,54 @@
 # dlScan
 
-Quickly-made Shell tool for downloading manga chapters.
+Download your manga chapters with this tool.
+Easy use with crontab, just indicate the `path` variable.
 
 ## Installation
 Clone repository
 
     $ git clone https://github.com/savari-o/dlScan.git .
 
-Copy dlScan to /usr/local/bin/
+Copy dlScan to your binary folder
 
     $ sudo cp dlScan /usr/local/bin/
 
 ## Usage
 
     $ dlScan
-    usage: dlScan manga_name [scan_number=latest]
-
-### Arguments :
-
-* manga_name : name of the manga (can be abbreviation)
-* scan_number : number of the chapter (default : latest)
+    usage: dlScan [-c chapter] [-i] name [path]
 
 ### Example :
 
     $ dlScan op 868
-    Download http://cdn.japscan.com/lel/One Piece/868/01.png
-    Download http://cdn.japscan.com/lel/One Piece/868/02.png
-    Download http://cdn.japscan.com/lel/One Piece/868/03.png
-    Download http://cdn.japscan.com/lel/One Piece/868/04.png
-    Download http://cdn.japscan.com/lel/One Piece/868/05.png
-    Download http://cdn.japscan.com/lel/One Piece/868/06-07.png
-    Download http://cdn.japscan.com/lel/One Piece/868/08.png
-    Download http://cdn.japscan.com/lel/One Piece/868/09.png
-    Download http://cdn.japscan.com/lel/One Piece/868/10-11.png
-    Download http://cdn.japscan.com/lel/One Piece/868/12-13.png
-    Download http://cdn.japscan.com/lel/One Piece/868/14.png
-    Download http://cdn.japscan.com/lel/One Piece/868/15.png
-    Download http://cdn.japscan.com/lel/One Piece/868/16-17.png
-    Downloaded 13 images from One Piece n°868 to :
-    /Users/olivier/Documents/Perso/dlScan/One Piece/868/*
+    Downloading One Piece chapter 868 page 1 to /Users/[...]/One Piece/868/1.png ...
+    Downloading One Piece chapter 868 page 2 to /Users/[...]/One Piece/868/2.png ...
+    Downloading One Piece chapter 868 page 3 to /Users/[...]/One Piece/868/3.png ...
+    Downloading One Piece chapter 868 page 4 to /Users/[...]/One Piece/868/4.png ...
+    Downloading One Piece chapter 868 page 5 to /Users/[...]/One Piece/868/5.png ...
+    Downloading One Piece chapter 868 page 6 to /Users/[...]/One Piece/868/6.png ...
+    Downloading One Piece chapter 868 page 7 to /Users/[...]/One Piece/868/7.png ...
+    Downloading One Piece chapter 868 page 8 to /Users/[...]/One Piece/868/8.png ...
+    Downloading One Piece chapter 868 page 9 to /Users/[...]/One Piece/868/9.png ...
+    Downloading One Piece chapter 868 page 10 to /Users/[...]/One Piece/868/10.png ...
+    Downloading One Piece chapter 868 page 11 to /Users/[...]/One Piece/868/11.png ...
+    Downloading One Piece chapter 868 page 12 to /Users/[...]/One Piece/868/12.png ...
+    Downloading One Piece chapter 868 page 13 to /Users/[...]/One Piece/868/13.png ...
     $ tree
     .
     └── One\ Piece
         └── 868
-            ├── 01.png
-            ├── 02.png
-            ├── 03.png
-            ├── 04.png
-            ├── 05.png
-            ├── 06-07.png
-            ├── 08.png
-            ├── 09.png
-            ├── 10-11.png
-            ├── 12-13.png
-            ├── 14.png
-            ├── 15.png
-            └── 16-17.png
+            ├── 1.png
+            ├── 10.png
+            ├── 11.png
+            ├── 12.png
+            ├── 13.png
+            ├── 2.png
+            ├── 3.png
+            ├── 4.png
+            ├── 5.png
+            ├── 6.png
+            ├── 7.png
+            ├── 8.png
+            └── 9.png
     
     2 directories, 13 files
