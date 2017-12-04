@@ -1,22 +1,40 @@
 #!/usr/local/bin/bash
 
-exe=$(echo $0 | sed "s/.*\\/\(.*\)/\\1/g")
 path=$(pwd)
 
 usage() {
-	echo "usage: ${exe} manga_name [scan_number=latest] [path=.]" >&2
+	echo "usage: ${0} [-c chapter] [-i] name [path]" >&2
+	exit 1
 }
 
 if [[ -z "${1}" ]]; then
 	usage
-	exit 1
 fi
 
-if [[ ! -z "${3}" ]]; then
-	if [[ -d "${3}" ]]; then
-		path="${3}"
+while getopts "ic:" o; do
+	case "${o}" in
+		i)
+			ignore=1
+			;;
+		c)
+			chapter=${OPTARG}
+			if ! [[ $chapter =~ [0-9][0-9]* ]]; then
+				echo "${0}: option argument must be a number" >&2
+				exit
+			fi
+			;;
+		h | *)
+			usage
+			;;
+	esac
+done
+shift $((OPTIND-1))
+
+if [[ ! -z "${2}" ]]; then
+	if [[ -d "${2}" ]]; then
+		path="${2}"
 	else
-		echo "${exe}: ${3}: Not a directory" >&2
+		echo "${0}: ${2}: Not a directory" 1>&2
 		exit 1
 	fi
 fi
@@ -92,30 +110,28 @@ url=("http://www.japscan.com/lecture-en-ligne/\${name}/\${chapter}/\${n}.html")
 
 latest() {
 	arg=$(echo "${1}" | tr '[:upper:]' '[:lower:]' | sed "s/ /-/g")
-	last=$(curl -s "http://www.japscan.com/mangas/${arg}/" 2>/dev/null | grep "//www.japscan.com/lecture-en-ligne/${arg}/" | head -n 2 | tail -n 1 | sed "s/.*href=\"[^\"]*\/\([0-9]*\)\/\".*/\1/")
+	last=$(curl -L -s "http://www.japscan.com/mangas/${arg}/" 2>/dev/null | grep "//www.japscan.com/lecture-en-ligne/${arg}/" | head -n 2 | tail -n 1 | sed "s/.*href=\"[^\"]*\/\([0-9]*\)\/\".*/\1/")
 	echo $last
 }
 
 getimgurl() {
 	name=$(echo "${1}" | tr '[:upper:]' '[:lower:]' | sed "s/ /-/g")
-	chapter="${2}"
 	n="${3}"
+
 	res=$(curl -s $(eval echo "${url}") | grep -A1 "id=\"img_link\"" | tail -n 1 | sed "s/.*src=\"\([^\"]*\)\".*/\\1/")
 
 	if [[ "${n}" -eq 1 ]]; then
 		warning=$(curl -s $(eval echo "${url}") | grep "id=\"note_chapitre\"" | sed "s/.*id=\"note_chapitre\">\([^<]*\).*/\\1/")
 	fi
 
-	if [[ "${4}" == "fr" ]] && [[ -z "${warning}" ]]; then
+	if [[ -z "${warning}" ]] || [[ ! -z "${4}" ]]; then
 		echo "${res}"
 	else
 		echo "${warning}" 1>&2
 	fi
 }
 
-chapter="${2}"
-
-if [[ -z "${2}" ]] || ! [[ "${2}" =~ ^[0-9]*$ ]]; then
+if [[ -z "${chapter}" ]]; then
 	chapter=$(latest "${name}")
 fi
 
@@ -130,7 +146,8 @@ mkdir -p "${path}/${name}/${chapter}/"
 
 while true; do
 	page=$(( page + 1 ))
-	imgurl=$(getimgurl "${name}" "${chapter}" "${page}" "fr")
+	imgurl=$(getimgurl "${name}" "${chapter}" "${page}" "${ignore}")
+
 	if [[ -z "${imgurl}" ]]; then
 		exit;
 	elif [[ "${imgurl}" =~ japscan\.com/img ]]; then
@@ -142,6 +159,6 @@ while true; do
 			imgurl="${base}${imgurl}"
 		fi
 		echo "Downloading ${name} chapter ${chapter} page $(( page - ad )) to ${path}/${name}/${chapter}/$(( page - ad )).${ext} ..."
-		curl -s "${imgurl}" > "${path}/${name}/${chapter}/$(( page - ad )).${ext}"
+		curl -L -s "${imgurl}" > "${path}/${name}/${chapter}/$(( page - ad )).${ext}"
 	fi
 done
