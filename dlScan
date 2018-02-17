@@ -150,7 +150,7 @@ while true; do
 
 	if [[ -z "${imgurl}" ]]; then
 		exit;
-	elif [[ "${imgurl}" =~ japscan\.com/img ]]; then
+	elif [[ "${imgurl}" =~ /imgs/IMG ]]; then
 		ad=$(( ad + 1 ))
 		continue;
 	else
