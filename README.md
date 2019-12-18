@@ -1,6 +1,6 @@
 # dlScan
 
-Warning : absolutely not up-to-date (URLs and page structure have heavily changed)
+Warning : Not up-to-date and doesn't work at all (Website used to get image sources has completely changed)
 
 Download your manga chapters with this tool.
 Easy use with crontab, just indicate the `path` variable.
